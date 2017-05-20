@@ -251,6 +251,7 @@ The biggest change is the fact that when using those augmentation methods, we us
 
 ```
 import keras
+from keras import backend as K
 
 keras.preprocessing.image.ImageDataGenerator(featurewise_center=False,
     samplewise_center=False,
