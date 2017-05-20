@@ -648,13 +648,13 @@ This is a method that works perfectly on a model defined in keras.applications, 
 When you want to extract features from a layer based on it's layer_index, then provide an argument specifying that you extract based on *index* not *name*. That is method 1.
 Second method is to use *layers[layer_index]* and provide a corresponding *layer_index*.
 
-* __Method 1:__*
+* __Method 1:__
 ```
 model = Model(input = orig_model.input, output = orig_model.get_layer(index = n).output)
 ```
 
 
-* __Method 2:__*
+* __Method 2:__
 ```
 model = Model(input = orig_model.input, output = orig_model.layers[layer_index].output)
 ```
