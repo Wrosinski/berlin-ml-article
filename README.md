@@ -91,7 +91,7 @@ How to approach loading the data? Oftentimes we won't work on full-size images. 
 
 #### OpenCV
 
-```
+```python
 import cv2
 
 path = 'images/img01.jpg'
@@ -104,7 +104,7 @@ img = cv2.resize(img, size)
 
 #### Scipy
 
-```
+```python
 from scipy import ndimage
 from scipy import misc # misc has functions for loading and resizing images
 
@@ -117,7 +117,7 @@ img = scipy.misc.imresize(img, size)
 
 #### Pillow
 
-```
+```python
 from Pillow import Image
 
 path = 'images/img01.jpg'
@@ -130,7 +130,7 @@ img = img.resize(size)
 Now we have a resized image. That's nice, certainly, but as we see, we have to specify a path to load it. So what should we do if we have a few folders, and there are many images in every of those?
 There are many ways to do that. I'll propose one I've been using which has been inspired by [ZFTurbo's kernel](https://www.kaggle.com/zfturbo/fishy-keras-lb-1-25267).
 
-```
+```python
 import os
 import time
 import glob
@@ -179,7 +179,7 @@ Sometimes we cannot work with the data in-memory because of various reasons - we
 
 Here we must approach the situation in a bit different way - we will load each image, resize it and then save into a destination folder, so it can then be easily fed to a neural net without further manipulation done by hand.
 
-```
+```python
 import os
 import time
 import glob
@@ -249,7 +249,7 @@ Working on images, we cannot perform feature engineering as-is, so we have to di
 Fortunately for us all, users of Keras, there are functions enabling you to perform real-time images augmentation with a few (quite) easy steps.
 The biggest change is the fact that when using those augmentation methods, we use generators to feed the data to the network.
 
-```
+```python
 import keras
 from keras import backend as K
 
@@ -278,7 +278,7 @@ This shows how many various augmentations methods we can apply to our data. To b
 
 ### ImageDataGenerator in-memory (.flow)
 
-```
+```python
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 
@@ -310,7 +310,7 @@ We need to use fit_generator to feed the data into model, where we specify each 
 
 ### ImageDataGenerator from disk (.flow_from_directory)
 
-```
+```python
 train_src = 'data/train_split/'
 valid_src = 'data/valid_split/'
 
@@ -354,7 +354,7 @@ model.fit_generator(train_generator,steps_per_epoch = X_tr.shape[0]/batch_size,
 Approach for using ImageGenerator with __.flow_from_directory__ is very similar, except for the fact that here we have to specify folder paths containing training and validation splits.
 In order to split, you can randomly choose a subset of data and move chosen files into validation folder (based on [sudo's NCFM script](https://github.com/dcrush/Nature-Conservancy-Kaggle/blob/master/1_vgg16_augmented.ipynb))
 
-```
+```python
 import os
 import time
 import glob
@@ -391,7 +391,7 @@ The second one is much more powerful and interesting, I'll thus dedicate a bit m
 
 Here's an example of a simple CNN model created with Sequential API:
 
-```
+```python
 from keras.models import Sequential
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers import Flatten, Dense, Dropout, Activation
@@ -446,7 +446,7 @@ Keras Functional API enables us to create complicated models easily and, what's 
 
 And the same model as above, created using Functional API:
 
-```
+```python
 from keras.models import Model
 from keras.layers import Input
 from keras.layers.convolutional import Conv2D, MaxPooling2D
@@ -526,7 +526,7 @@ Here are a few steps how to make them work:
 
 Let's take a look at examples which will be described below:
 
-```
+```python
 from keras.layers.core import Flatten, Dense, Dropout, Reshape, Lambda
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
 from keras.layers.pooling import GlobalAveragePooling2D
@@ -589,29 +589,29 @@ num_classes = 3
 
 
 In *resnet_simple* we simply add a few layers to the model. Because we get last layer with *.get_layer*, the one that will be last in our new model is:
-```
+```python
 x = AveragePooling2D((7, 7), name='avg_pool')(x)
 ```
 based on model architecture.
 
 
 In *renset_2branches* we would like to add two different pooling layers, so that each can learn a bit different features:
-```
+```python
 glob_pool = AveragePooling2D((7, 7), strides=(7, 7), name='avg_pool')(output)
 max_pool = MaxPooling2D((7, 7), strides=(7, 7), name='max_pool')(output)
 ```
 Afterwards we concatenate their outputs on *concat_axis = -1* because that's the axis for RGB channels in TF format.
-```
+```python
 concat_pool = merge([glob_pool, max_pool], mode='concat', concat_axis=-1)
 ```
 and feed them to a dense layer:
-```
+```python
 output = Flatten(name='flatten')(concat_pool)
 ```
 
 which we assume will be able to distinguish between classes based on their different features, each learned from a different Pooling layer.
 Now we need to get penultimate layer from the ResNet50 architecture, which according to [Keras's ResNet architecture](https://github.com/fchollet/keras/blob/master/keras/applications/resnet50.py) is 
-```
+```python
 x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
 ```
 because otherwise we would pool from a AveragePooling layer and that's not something we want to do.
@@ -626,7 +626,7 @@ Sometimes we would like to extract features from a Convolutional Neural Network 
 [Keras Documentation](https://keras.io/applications/) specifies that we can use *get_layer('block4_pool').output* to get a proper layer for feature extraction:
 
 #### Extract features from an arbitrary intermediate layer with VGG19
-```
+```python
 from keras.applications.vgg19 import VGG19
 from keras.preprocessing import image
 from keras.applications.vgg19 import preprocess_input
@@ -650,13 +650,13 @@ When you want to extract features from a layer based on it's layer_index, then p
 Second method is to use *layers[layer_index]* and provide a corresponding *layer_index*.
 
 * __Method 1:__
-```
+```python
 model = Model(input = orig_model.input, output = orig_model.get_layer(index = n).output)
 ```
 
 
 * __Method 2:__
-```
+```python
 model = Model(input = orig_model.input, output = orig_model.layers[layer_index].output)
 ```
 
@@ -666,7 +666,7 @@ You will usually want to extract features for further classification, when you h
 
 Model is for visualization purpose only:
 
-```
+```python
 def resnet_simple():
     resnet_notop = ResNet50(include_top=False, weights='imagenet',
                             input_tensor=None, input_shape = size)
@@ -686,7 +686,7 @@ def resnet_simple():
 ```
 
 
-```
+```python
 from keras.models import load_model, Model
 
 n = -5
@@ -696,13 +696,13 @@ feature_extractor = Model(input = orig_model.input, output = orig_model.layers[n
 ```
 
 We want to extract features from 
-```
+```python
 output = PReLU()(output)
 ```
 
 layer and it's 5th from the bottom of the model. Here are indexes corresponding to layers visualized:
 
-```
+```python
 output = Flatten(name='flatten')(output)
 output = Dropout(0.2)(output)
 output = Dense(512)(output) # -5 index
@@ -713,7 +713,7 @@ output = Dense(num_classes, activation='softmax', name = 'predictions')(output) 
 ```
 
 When a model is built, now we predict with it data we want to feed the classifier with using:
-```
+```python
 train_features = feature_extractor.predict(X_train, batch_size = 16)
 valid_features = feature_extractor.predict(X_valid, batch_size = 16)
 ```
@@ -723,7 +723,7 @@ because our *Dense()* layer is 512-neurons wide, our *train_features* will be a 
 
 Here comes the final step - feeding the features into XGB classifier:
 
-```
+```python
 import xgboost as xgb
 from sklearn.metrics import log_loss
 
@@ -760,7 +760,7 @@ print('Logloss:', log_loss(y_val, preds_val))
 #### So the full code for feature extraction will look like this:
 
 
-```
+```python
 import xgboost as xgb
 from keras.models import load_model, Model
 from sklearn.metrics import log_loss
