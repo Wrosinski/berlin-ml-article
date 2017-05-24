@@ -802,3 +802,76 @@ print('Logloss:', log_loss(y_val, preds_val))
 ```
 
 __Voila!__ Now we can see if performance of our new classifier trained on CNN features is better than that of an CNN itself.
+
+
+
+_Bonus!_ Branched LSTM Model - two parallel LSTM branches (can be used for example for sentence similarity assessment) and a third MLP branch to provide the model with additional categorical/numerical features:
+
+```python
+from keras.layers import Dense, Input, LSTM, Embedding, Dropout, Activation
+from keras.layers.normalization import BatchNormalization
+from keras.layers.advanced_activations import PReLU
+from keras.layers.merge import concatenate
+
+def merged_lstm():
+    embedding_layer = Embedding(nb_words,
+            embedding_dim,
+            weights=[word_embedding_matrix],
+            input_length=128,
+            trainable=False)
+    
+    lstm_layer = LSTM(128, dropout=0.2, recurrent_dropout=0.15,
+                     go_backwards = False, implementation = 2)
+
+    sequence_1_input = Input(shape=(128,), dtype='int32')
+    embedded_sequences_1 = embedding_layer(sequence_1_input)
+    x1 = lstm_layer(embedded_sequences_1)
+
+    sequence_2_input = Input(shape=(128,), dtype='int32')
+    embedded_sequences_2 = embedding_layer(sequence_2_input)
+    y1 = lstm_layer(embedded_sequences_2)
+
+    dense_input = Input(shape = (ncols,)) # ncols - number of columns in the array with additional features
+    d = Dense(256, kernel_initializer = 'he_normal')(dense_input)
+    d = PReLU()(d)
+    d = BatchNormalization()(d)
+    d = Dropout(0.4)(d)
+    
+    d2 = Dense(512, kernel_initializer = 'he_normal')(d)
+    d2 = PReLU()(d2)
+    d2 = BatchNormalization()(d2)
+    d2 = Dropout(0.2)(d2)
+    
+    d3 = Dense(512, kernel_initializer = 'he_normal')(d2)
+    d3 = PReLU()(d3)
+    d3 = BatchNormalization()(d3)
+    d3 = Dropout(0.2)(d3)
+    
+    merged = concatenate([x1, y1, d3])
+    merged = Dropout(0.2)(merged)
+    merged = BatchNormalization()(merged)
+
+    merged = Dense(512)(merged)
+    merged = PReLU()(merged)
+    merged = Dropout(0.2)(merged)
+    merged = BatchNormalization()(merged)
+
+    preds = Dense(1, activation='sigmoid')(merged)
+    
+    model = Model(inputs=[sequence_1_input, sequence_2_input, dense_input], outputs=preds)
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
+    return model
+
+```
+
+## Additional resources:
+
+* [Keras Resources](https://github.com/fchollet/keras-resources/blob/master/README.md)
+* [ML & DL Tutorials Compilation](https://github.com/ujjwalkarn/Machine-Learning-Tutorials)
+
+
+* [Stanford CS231n: Convolutional Neural Networks for Visual Recognition](http://cs231n.stanford.edu/)
+  Video lectures, notes, papers and coding assignments in Python.
+* [Awesome Courses - Deep Learning](https://github.com/ChristosChristofidis/awesome-deep-learning)
+* [Awesome Machine Learning](https://github.com/josephmisiti/awesome-machine-learning)
+* [Deep Learning Book](http://www.deeplearningbook.org/)
